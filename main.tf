@@ -160,6 +160,8 @@ resource "oci_identity_policy" "oke_access" {
   statements = [
     "Allow group ${each.value} to use clusters in compartment id ${var.compartment_id}",
     "Allow group ${each.value} to read cluster-node-pools in compartment id ${var.compartment_id}",
-    "Allow group ${each.value} to manage repos in compartment id ${var.compartment_id}"
+    "Allow group ${each.value} to manage repos in compartment id ${var.compartment_id}",
+    "Allow group ${each.value} to read metrics in compartment id ${var.compartment_id}",
+    "Allow group ${each.value} to read file-systems in compartment id ${var.compartment_id}"    
   ]
 }
