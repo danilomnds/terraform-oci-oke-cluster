@@ -9,7 +9,15 @@ Module developed to standardize the creation of Oracle Container Engine (OKE).
 
 | Module Version | Terraform Version | OCI Version     |
 |----------------|-------------------| --------------- |
-| v1.0.0         | v1.10.1            | 6.18.0          |
+| v1.0.0         | v1.10.1           | 6.18.0          |
+| v1.1.0         | v1.11.3           | 6.35.0          |
+
+## Update Notes
+
+| Module Version | Note | 
+|----------------|-------------------|
+| v1.1.0         | For automation of autoscaling and images pulling, a dynamic group created by this module. For image pulling, please use the statup_script added [here](./extra/cloudinit-system.sh). The image pulling is based on this [project](https://github.com/oracle-devrel/oke-credential-provider-for-ocir).| 
+
 
 ## Specifying a version
 
@@ -19,7 +27,7 @@ Note: The `?ref=***` refers a tag on the git module repo.
 ## Use case + RBAC
 ```hcl
 module "oci-oke-<system>-<env>" {
-  source = "git::https://github.com/danilomnds/terraform-oci-oke-cluster?ref=v1.0.0"  
+  source = "git::https://github.com/danilomnds/terraform-oci-oke-cluster?ref=v1.1.0"  
   compartment_id = var.compartment_id
   defined_tags   = var.defined_tags
   endpoint_config = {    
@@ -46,7 +54,7 @@ output "cluster_id" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| tenancy_ocid | TIMSA Tenancy ID where the Dynamic group for the OKE instances will be created | `string` | n/a | No |
+| tenancy_ocid | Tenancy ID where the Dynamic group for the OKE instances will be created | `string` | n/a | No |
 | network_compartment_id | Compartment ID where the network resources are | `string` | n/a | No |
 | cluster_pod_network_options | Available CNIs and network options for existing and new node pools of the cluster | `object({})` | `FLANNEL_OVERLAY` | No |
 | compartment_id | The OCID of the compartment in which to create the cluster | `string` | n/a | `Yes` |

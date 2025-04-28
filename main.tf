@@ -19,7 +19,9 @@ resource "oci_identity_policy" "policy_dg_oke_compartment" {
     "Allow dynamic-group ${oci_identity_dynamic_group.oke_dg.name} to manage instance-family in compartment id ${var.compartment_id}",
     "Allow dynamic-group ${oci_identity_dynamic_group.oke_dg.name} to use subnets in compartment id ${var.compartment_id}",
     "Allow dynamic-group ${oci_identity_dynamic_group.oke_dg.name} to use vnics in compartment id ${var.compartment_id}",
-  "Allow dynamic-group ${oci_identity_dynamic_group.oke_dg.name} to inspect compartments in compartment id ${var.compartment_id}"]
+    "Allow dynamic-group ${oci_identity_dynamic_group.oke_dg.name} to read repos in compartment id ${var.compartment_id}",
+    "Allow any-user to manage file-family in compartment id ${var.compartment_id} where request.principal.type = 'cluster'",
+  "Allow dynamic-group ${oci_identity_dynamic_group.oke_dg.name} to inspect compartments in compartment id ${var.compartment_id}"]  
 }
 
 resource "oci_identity_policy" "policy_dg_network_compartment" {
@@ -98,6 +100,7 @@ resource "oci_containerengine_cluster" "oke_cluster" {
         content {
           ca_certificate                  = lookup(open_id_connect_token_authentication_config.value, "ca_certificate", null)
           client_id                       = lookup(open_id_connect_token_authentication_config.value, "client_id", null)
+          configuration_file              = lookup(open_id_connect_token_authentication_config.value, "configuration_file", null)
           groups_claim                    = lookup(open_id_connect_token_authentication_config.value, "groups_claim", null)
           groups_prefix                   = lookup(open_id_connect_token_authentication_config.value, "groups_prefix", null)
           is_open_id_connect_auth_enabled = open_id_connect_token_authentication_config.value.is_open_id_connect_auth_enabled
@@ -147,21 +150,11 @@ resource "oci_containerengine_cluster" "oke_cluster" {
 }
 
 resource "oci_identity_policy" "oke_access" {
-  #if you are deploying the resource outside your home region uncomment the line below
-  #provider   = oci.home-region
-  depends_on = [oci_containerengine_cluster.oke_cluster]
-  for_each = {
-    for group in var.groups : group => group
-    if var.groups != [] && var.compartment_id != null
-  }
+  provider       = oci.oci-gru
+  depends_on     = [oci_containerengine_cluster.oke_cluster]
+  count          = length(var.groups) == 0 ? 0 : 1
   compartment_id = var.compartment_id
   name           = "policy_${var.name}"
   description    = "allow one or more groups to access oke and repos"
-  statements = [
-    "Allow group ${each.value} to use clusters in compartment id ${var.compartment_id}",
-    "Allow group ${each.value} to read cluster-node-pools in compartment id ${var.compartment_id}",
-    "Allow group ${each.value} to manage repos in compartment id ${var.compartment_id}",
-    "Allow group ${each.value} to read metrics in compartment id ${var.compartment_id}",
-    "Allow group ${each.value} to read file-systems in compartment id ${var.compartment_id}"    
-  ]
+  statements     = local.statements
 }
